@@ -49,8 +49,8 @@ class _Registration():
 
 
 class _PairwiseRegistration(_Registration):
-    def __init__(self, dtype=th.float32, device='cpu'):
-        super(_PairwiseRegistration, self).__init__(dtype, device)
+    def __init__(self, dtype=th.float32, device='cpu', **kwargs):
+        super(_PairwiseRegistration, self).__init__(dtype, device, **kwargs)
 
         # regulariser on the displacement
         self._regulariser_displacement = []
@@ -66,8 +66,8 @@ class _PairwiseRegistration(_Registration):
 
 
 class _GroupwiseRegistration(_Registration):
-    def __init__(self, dtype=th.float32, device='cpu'):
-        super(_GroupwiseRegistration, self).__init__(dtype, device)
+    def __init__(self, dtype=th.float32, device='cpu', **kwargs):
+        super(_GroupwiseRegistration, self).__init__(dtype, device, **kwargs)
 
         self._images = None
 
@@ -76,8 +76,8 @@ class _GroupwiseRegistration(_Registration):
 
 
 class _ImageSeriesRegistration(_Registration):
-    def __init__(self, dtype=th.float32, device='cpu'):
-        super(_GroupwiseRegistration, self).__init__(dtype, device)
+    def __init__(self, dtype=th.float32, device='cpu', **kwargs):
+        super(_ImageSeriesRegistration, self).__init__(dtype, device, **kwargs)
 
         self._image_series = None
         self._fixed_image = None
@@ -90,8 +90,8 @@ class _ImageSeriesRegistration(_Registration):
 
 
 class PairwiseRegistration(_PairwiseRegistration):
-	def __init__(self, dtype=th.float32, device='cpu'):
-		super(PairwiseRegistration, self).__init__(dtype, device)
+	def __init__(self, dtype=th.float32, device='cpu', **kwargs):
+		super(PairwiseRegistration, self).__init__(dtype, device, **kwargs)
 
 	def _closure(self):
 		self._optimizer.zero_grad()
@@ -155,8 +155,8 @@ class PairwiseRegistration(_PairwiseRegistration):
 		self.loss=loss
 
 class DemonsRegistraion(_Registration):
-    def __init__(self, dtype=th.float, device=th.device('cpu')):
-        super(DemonsRegistraion, self).__init__(dtype, device)
+    def __init__(self, dtype=th.float, device=th.device('cpu'), **kwargs):
+        super(DemonsRegistraion, self).__init__(dtype, device, **kwargs)
 
         # regulariser on the displacement
         self._regulariser = []
