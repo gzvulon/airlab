@@ -13,39 +13,40 @@
 # limitations under the License.
 
 import torch as th
-from numpy import inf,max
+from numpy import inf, max
+
 
 class _Registration():
-	def __init__(self, dtype=th.float32, device='cpu', verbose=True):
-		self._dtype = dtype
-		self._device = device
+    def __init__(self, dtype=th.float32, device='cpu', verbose=True):
+        self._dtype = dtype
+        self._device = device
 
-		# transformation of the image
-		self._transformation = None
+        # transformation of the image
+        self._transformation = None
 
-		# image similarity measure
-		self._image_loss = None
+        # image similarity measure
+        self._image_loss = None
 
-		#optimizer
-		self._optimizer = None
-		self._number_of_iterations = 100
+        # optimizer
+        self._optimizer = None
+        self._number_of_iterations = 100
 
-		self._displacement = None
-		
-		self._verbose=verbose
-		self.loss=inf
+        self._displacement = None
 
-	def set_optimizer(self, optimizer):
-		self._optimizer = optimizer
+        self._verbose = verbose
+        self.loss = inf
 
-	def set_number_of_iterations(self, number_of_iterations):
-		self._number_of_iterations = number_of_iterations
+    def set_optimizer(self, optimizer):
+        self._optimizer = optimizer
 
-	def set_transformation(self, transformation):
-		self._transformation = transformation
+    def set_number_of_iterations(self, number_of_iterations):
+        self._number_of_iterations = number_of_iterations
 
-	def set_image_loss(self, loss):
-		self._image_loss = loss
+    def set_transformation(self, transformation):
+        self._transformation = transformation
+
+    def set_image_loss(self, loss):
+        self._image_loss = loss
 
 
 class _PairwiseRegistration(_Registration):
@@ -90,69 +91,69 @@ class _ImageSeriesRegistration(_Registration):
 
 
 class PairwiseRegistration(_PairwiseRegistration):
-	def __init__(self, dtype=th.float32, device='cpu', **kwargs):
-		super(PairwiseRegistration, self).__init__(dtype, device, **kwargs)
+    def __init__(self, dtype=th.float32, device='cpu', **kwargs):
+        super(PairwiseRegistration, self).__init__(dtype, device, **kwargs)
 
-	def _closure(self):
-		self._optimizer.zero_grad()
+    def _closure(self):
+        self._optimizer.zero_grad()
 
-		displacement = self._transformation()
+        displacement = self._transformation()
 
-		# compute the image loss
-		lossList = []
-		loss_names = []
-		for image_loss in self._image_loss:
-			 lossList.append(image_loss(displacement))
-			 loss_names.append(image_loss.name)
+        # compute the image loss
+        lossList = []
+        loss_names = []
+        for image_loss in self._image_loss:
+            lossList.append(image_loss(displacement))
+            loss_names.append(image_loss.name)
 
-		# compute the regularisation loss on the displacement
-		for reg_disp in self._regulariser_displacement:
-			lossList.append(reg_disp(displacement))
-			loss_names.append(reg_disp.name)
+        # compute the regularisation loss on the displacement
+        for reg_disp in self._regulariser_displacement:
+            lossList.append(reg_disp(displacement))
+            loss_names.append(reg_disp.name)
 
-		# compute the regularisation loss on the parameter
-		for reg_param in self._regulariser_parameter:
-			lossList.append(reg_param(self._transformation.named_parameters()))
-			loss_names.append(reg_param.name)
+        # compute the regularisation loss on the parameter
+        for reg_param in self._regulariser_parameter:
+            lossList.append(reg_param(self._transformation.named_parameters()))
+            loss_names.append(reg_param.name)
 
-		if self._verbose:
-			for loss_value, loss_name in zip(lossList, loss_names):
-				print(str(loss_name) + ": " + str(loss_value.data.item()) + " ", end='', flush=True)
-			print("")
+        if self._verbose:
+            for loss_value, loss_name in zip(lossList, loss_names):
+                print(str(loss_name) + ": " + str(loss_value.data.item()) + " ", end='', flush=True)
+            print("")
 
-		# sum up all loss terms
-		loss = sum(lossList)
+        # sum up all loss terms
+        loss = sum(lossList)
 
-		loss.backward()
+        loss.backward()
 
-		return loss
+        return loss
 
+    def start(self, EarlyStopping=False, StopPatience=10):
 
-	def start(self,EarlyStopping=False,StopPatience=10):
+        if EarlyStopping:
+            from copy import deepcopy
+            n = 0
+            try:
+                self.loss
+            except:
+                self.loss = inf
 
-		if EarlyStopping:
-			from copy import deepcopy
-			n=0
-			try:
-				self.loss
-			except:
-				self.loss=inf
-				
-		for iter_index in range(self._number_of_iterations):
-			if self._verbose:
-				print(str(iter_index) + " ", end='', flush=True)
-			loss = self._optimizer.step(self._closure)
-			if EarlyStopping:
-				if loss < self.loss:
-					n=0
-					self.loss=loss
-					best=deepcopy(self._transformation)
-				else:
-					n+=1
-				if n>StopPatience:
-					self._transformation=best
-					return
-		self.loss=loss
+        for iter_index in range(self._number_of_iterations):
+            if self._verbose:
+                print(str(iter_index) + " ", end='', flush=True)
+            loss = self._optimizer.step(self._closure)
+            if EarlyStopping:
+                if loss < self.loss:
+                    n = 0
+                    self.loss = loss
+                    best = deepcopy(self._transformation)
+                else:
+                    n += 1
+                if n > StopPatience:
+                    self._transformation = best
+                    return
+        self.loss = loss
+
 
 class DemonsRegistraion(_Registration):
     def __init__(self, dtype=th.float, device=th.device('cpu'), **kwargs):
@@ -162,7 +163,7 @@ class DemonsRegistraion(_Registration):
         self._regulariser = []
 
     def set_regulariser(self, regulariser):
-            self._regulariser = regulariser
+        self._regulariser = regulariser
 
     def _closure(self):
         self._optimizer.zero_grad()
@@ -197,5 +198,3 @@ class DemonsRegistraion(_Registration):
 
             for regulariser in self._regulariser:
                 regulariser.regularise(self._transformation.parameters())
-
-
