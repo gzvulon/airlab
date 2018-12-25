@@ -178,9 +178,11 @@ class DemonsRegistraion(_Registration):
             loss_names.append(image_loss.name)
 
         for loss_value, loss_name in zip(lossList, loss_names):
-            print(str(loss_name) + ": " + str(loss_value.data.item()) + " ", end='', flush=True)
+            if self._verbose:
+                print(str(loss_name) + ": " + str(loss_value.data.item()) + " ", end='', flush=True)
 
-        print("")
+        if self._verbose:
+            print("")
 
         # sum up all loss terms
         loss = sum(lossList)
@@ -192,7 +194,8 @@ class DemonsRegistraion(_Registration):
     def start(self):
 
         for iter_index in range(self._number_of_iterations):
-            print(str(iter_index) + " ", end='', flush=True)
+            if self._verbose:
+                print(str(iter_index) + " ", end='', flush=True)
 
             loss = self._optimizer.step(self._closure)
 
