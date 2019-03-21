@@ -62,16 +62,16 @@ class GaussianRegulariser(_DemonsRegulariser):
 
     def _regularise_2d(self, data):
 
-        data.data.unsqueeze_(0)
+        data = data.data.unsqueeze(0)
         data.data = F.conv2d(data.data, self._kernel.contiguous(), padding=self._padding, groups=2)
-        data.data.squeeze_()
+        data = data.data.squeeze(0)
 
 
     def _regularise_3d(self, data):
 
-        data.data.unsqueeze_(0)
+        data = data.data.unsqueeze(0)
         data.data = F.conv3d(data.data, self._kernel, padding=self._padding, groups=3)
-        data.data.squeeze_()
+        data = data.data.squeeze(0)
 
     def regularise(self, data):
         for parameter in data:
@@ -297,7 +297,7 @@ class GraphDiffusionRegulariser(_DemonsRegulariser):
     def get_edge_image(self):
         main_diag_laplace = th.reshape(self._graph.laplace_matrix.main_diag, self._image_size)
 
-        return iu.Image(main_diag_laplace.unsqueeze_(0).unsqueeze(0), self._image_size, self._pixel_spacing, th.zeros(len(self._image_size))) # only zero origin supported yet
+        return iu.Image(main_diag_laplace.unsqueeze(0).unsqueeze(0), self._image_size, self._pixel_spacing, th.zeros(len(self._image_size))) # only zero origin supported yet
 
 
 
@@ -314,16 +314,3 @@ class GraphDiffusionRegulariser(_DemonsRegulariser):
 
                 # update the edge weights on the curren data
                 self._edge_updater.update(parameter.data)
-
-
-
-
-
-
-
-
-
-
-
-
-
